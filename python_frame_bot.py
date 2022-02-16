@@ -1,7 +1,9 @@
 import requests
+import json
 import schedule
 import time
 import os
+import functools
 '''
 Already installed packages:
 pip install python-opencv
@@ -18,6 +20,25 @@ TOTAL_FRAMES = "total_frames"
 POST_EVERY_SEGS = "post_every_segs"
 EPISODE_NAME = "episode_name"
 SHOW_NAME = "show_name"
+
+class FrameException(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self, "Coult not post frame")
+
+def catch_exceptions(cancel_on_failure=False):
+    def catch_exceptions_decorator(job_func):
+        @functools.wraps(job_func)
+        def wrapper(*args, **kwargs):
+            try:
+                return job_func(*args, **kwargs)
+            except:
+                import traceback
+                print(traceback.format_exc())
+                if cancel_on_failure:
+                    return schedule.CancelJob
+        return wrapper
+    return catch_exceptions_decorator
 
 #101134099166462 - page id
 page_id = '101134099166462'
@@ -97,6 +118,7 @@ def load_config():
             continue    
     return True
 
+@catch_exceptions()
 def post_album_frame_facebook():
     print("Frame: "+str(frames_posted))
     facebook_host_api = 'https://graph.facebook.com/{}/photos'.format(album_id)
@@ -109,9 +131,12 @@ def post_album_frame_facebook():
     'message': "{0} - {1} - Frame: {2} / {3}".format(show_name, episode_name, frames_posted, total_frames)
     }
     #Send the POST request
-    r = requests.post(facebook_host_api, data=img_payload)
-    print(r.text)
-    return r.text
+    response = requests.post(facebook_host_api, data=img_payload)
+    response_json = json.loads(response.text)
+    print(type(response_json))
+    if 'error' in response_json:
+        raise FrameException(response_json['error']['message'])
+    return response.text
 
 def get_frame_file_name(frame):
     return "Shield-Hero-{0}-f{1}.jpg".format(episode_name,frame)
@@ -156,5 +181,3 @@ if __name__ == '__main__':
     print("END")
     schedule.clear()
     '''
-
-    
