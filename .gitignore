@@ -14,4 +14,4 @@ bld/
 [Ll]ogs/
 
 .vs/
-config.txt
+test_python_facebook.py
