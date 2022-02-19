@@ -5,14 +5,8 @@ import time
 import os
 import functools
 from frame_exceptions import FrameException
-'''
-Already installed packages:
-pip install python-opencv
 
-pip install requets
-pip install schedule
-'''
-
+# Constants to get configuration data
 CONFIG_FILE = "config.txt"
 ACCESS_TOKEN = "access_token"
 PAGE_ID = "page_id"
@@ -22,6 +16,7 @@ POST_EVERY_SEGS = "post_every_segs"
 EPISODE_NAME = "episode_name"
 SHOW_NAME = "show_name"
 
+# Global variables. Will be loaded from config.txt
 page_id = ''
 access_token = ''
 album_id = ''
@@ -31,6 +26,7 @@ show_name=''
 episode_name = ''
 frames_posted = 0
 
+#Handling exceptions (based on schedule module docs)
 def catch_exceptions(cancel_on_failure=False):
     def catch_exceptions_decorator(job_func):
         @functools.wraps(job_func)
@@ -38,7 +34,7 @@ def catch_exceptions(cancel_on_failure=False):
             try:
                 return job_func(*args, **kwargs)
             except FrameException as fe:
-                post_facebook_message(fe.message)
+                post_facebook_message(fe.get_message)
                 print(fe.message)
                 if cancel_on_failure:
                     return schedule.CancelJob            
@@ -53,6 +49,9 @@ def catch_exceptions(cancel_on_failure=False):
     return catch_exceptions_decorator
 
 def load_config():
+    """
+    Loads the configuration data from config.txt
+    """
     print("Loading configs")
     if(not os.path.isfile(CONFIG_FILE)):
         print("No config file found")
@@ -97,6 +96,14 @@ def load_config():
     return True
 
 def post_facebook_message(message:str):
+    """
+    Post a single text to page
+
+    Parameters
+    --------
+    message: str
+        Text to post
+    """
     post_url = f"https://graph.facebook.com/{page_id}/feed"
     payload = {
         'message':message,
@@ -107,6 +114,11 @@ def post_facebook_message(message:str):
 
 @catch_exceptions()
 def post_album_frame_facebook():
+    """
+    Post image to facebook.
+
+    Post the image stored, the url of the image is calculated
+    """
     print(f"Frame: {frames_posted} of {total_frames}")
     facebook_host_api = 'https://graph.facebook.com/{}/photos'.format(album_id)
     frame_file_name = get_frame_file_name(frames_posted)
@@ -119,10 +131,13 @@ def post_album_frame_facebook():
     response = requests.post(facebook_host_api, data=img_payload)
     response_json = json.loads(response.text)
     if 'error' in response_json:
-        raise FrameException(response_json['error']['message'])
+        raise FrameException(response_json['error']['message'], frames_posted)
     return response.text
 
 def get_frame_file_name(frame):
+    """
+    Builds the frame image file name
+    """
     frame_zfill = (str(frame)).zfill(5)
     return "Shield-Hero-{0}-f{1}.jpg".format(episode_name,frame_zfill)
 
