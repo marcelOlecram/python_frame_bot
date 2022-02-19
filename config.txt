@@ -1,7 +1,0 @@
-access_token:
-page_id:
-album_id:
-total_frames:
-post_every_segs:
-episode_name:
-show_name:
