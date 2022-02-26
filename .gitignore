@@ -18,3 +18,4 @@ bld/
 __pycache__/
 test_python_facebook.py
 config.txt
+*.log
