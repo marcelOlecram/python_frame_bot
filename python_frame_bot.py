@@ -118,7 +118,8 @@ def load_config():
             continue    
         if FRAME_HOST in file_line:
             global frame_host
-            frame_host = file_line.split(':')[1].strip()
+            #frame_host = file_line.spl.split(':')[1].strip()
+            frame_host = file_line[len(FRAME_HOST)+1:].strip()
             logger.debug("frame_host found")
             continue 
     logger.info("Config loaded")
