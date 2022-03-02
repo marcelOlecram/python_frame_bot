@@ -41,7 +41,6 @@ This file has all the variables that will be loaded to post the frames. The prop
 |episode_name|The name of the file. Used for both post message and building the specific URL to the frame|
 |show_name|The name of the video or show. Used for post message|
 
-The file must have
 Run the python script:
 
 >```python python_frame_bot.py```
