@@ -123,6 +123,9 @@ def load_config():
             logger.debug("frame_host found")
             continue 
     logger.info("Config loaded")
+    if start_frame >= total_frames:
+        logger.error("Start frame is bigger than total frames to post")
+        return False
     return True
 
 def post_facebook_message(message:str):
@@ -177,6 +180,8 @@ def main():
 
     global frames_posted
     frames_posted = start_frame
+    if frames_posted > 0:
+        frames_posted -= 1
     schedule.every(post_every_segs).seconds.do(post_album_frame_facebook)
     condition = frames_posted < total_frames
     logger.info("Started posting frames")
